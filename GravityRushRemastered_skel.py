@@ -4,7 +4,7 @@ from inc_noesis import *
 import noesis
 import rapi
 
-debug = True
+debug = False
 
 def registerNoesisTypes():
     handle = noesis.register('Gravity Rush Remastered Skeleton', '.skel')
