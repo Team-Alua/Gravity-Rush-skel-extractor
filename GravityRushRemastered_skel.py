@@ -4,11 +4,10 @@ from inc_noesis import *
 import noesis
 import rapi
 
-debug = False
+debug = True
 
 def registerNoesisTypes():
-    handle = noesis.register('Gravity Rush Remastered Skeleton', '.skel'
-                             )
+    handle = noesis.register('Gravity Rush Remastered Skeleton', '.skel')
     noesis.setHandlerTypeCheck(handle, noepyCheckType)
     noesis.setHandlerLoadModel(handle, noepyLoadModel)
     if debug:
@@ -20,9 +19,10 @@ def noepyCheckType(data):
     file = NoeBitStream(data)
     if len(data) < 4:
         return 0
-    if file.readBytes(4).decode('ASCII').rstrip("\0") != '20SE':
-        return 0
-    return 1
+    header = file.readBytes(4).decode('ASCII').rstrip("\0")
+    if  header == '20SE' or header == '60SE':
+        return 1
+    return 0
 
 
 # loading the bones!
@@ -61,7 +61,7 @@ def noepyLoadModel(data, mdlList):
         
         boneMat = rotation.toMat43(transposed=1)
         boneMat[3] = translation
-        bones.append(NoeBone(boneIndex, “Bone%i" % (boneIndex), boneMat, None, parentBoneIndex))
+        bones.append(NoeBone(boneIndex, "Bone%i" % (boneIndex), boneMat, None, parentBoneIndex))
         
         if debug:
             print("Bone %i %s" % (boneIndex, hex(boneHash))) 
@@ -76,7 +76,7 @@ def noepyLoadModel(data, mdlList):
     print("Bone globalization")
     for i in range(0, boneCount):
         j = bones[i].parentIndex
-        if j != 65535: # 65535 = -1
+        if j >= 0 and j < boneCount:
             if debug:
                 print("Bone %i X %i" % (i,j))
                 print("%f \t %f \t %f" % (bones[i].getMatrix()[0][0],bones[i].getMatrix()[0][1],bones[i].getMatrix()[0][2]))
@@ -91,6 +91,8 @@ def noepyLoadModel(data, mdlList):
                 print("%f \t %f \t %f" % (bones[i].getMatrix()[2][0],bones[i].getMatrix()[2][1],bones[i].getMatrix()[2][2]))
                 print("%f \t %f \t %f" % (bones[i].getMatrix()[3][0],bones[i].getMatrix()[3][1],bones[i].getMatrix()[3][2]))
                 print()
+    else:
+            print("Error Bone globalization %i X %i" % (i,j))
                 
 
     mdl = NoeModel()
